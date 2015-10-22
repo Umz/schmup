@@ -1,6 +1,10 @@
 var player;
 var starfield;
+
+var bullets;
+
 var cursors;
+var fireButton;
 
 var ship = {
   'acceleration': 600,
@@ -8,6 +12,8 @@ var ship = {
   'maxSpeed': 400
 }
 
+
+// TODO: var game = this for readability
 var Game = function() {
   this.testentity = null;
 };
@@ -20,6 +26,16 @@ Game.prototype = {
     //  We're going to be using physics, so enable the Arcade Physics system
     //  The scrolling starfield background
     starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
+
+    // The bullet group
+    bullets = this.add.group();
+    bullets.enableBody = true;
+    bullets.physicsBodyType = Phaser.Physics.ARCADE;
+    bullets.createMultiple(30, 'bullet');
+    bullets.setAll('anchor.x', 0.5);
+    bullets.setAll('anchor.y', 1);
+    bullets.setAll('outOfBoundsKill', true);
+    bullets.setAll('checkWorldBounds', true);
 
     // The player's ship
     player = this.add.sprite(400, 500, 'ship');
@@ -45,6 +61,7 @@ Game.prototype = {
 
     // Set controls
     cursors = this.input.keyboard.createCursorKeys();
+    fireButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
   },
 
   update: function() {
@@ -57,6 +74,10 @@ Game.prototype = {
     }
     else if (cursors.right.isDown) {
       player.body.acceleration.x = ship.acceleration;
+    }
+
+    if (fireButton.isDown) {
+      fireBullet();
     }
 
     // TODO: Refactor to be DRY
@@ -76,6 +97,21 @@ Game.prototype = {
     player.angle = bank * 5;
 
     shipTrail.x = player.x;
+
+    function fireBullet() {
+      var bullet = bullets.getFirstExists(false);
+      var bulletSpeed = 400;
+
+      if (bullet) {
+        
+        // Bullets angle and velocity based on ship physics.
+        var bulletOffset = 20 * Math.sin(Math.degToRad(player.angle));
+        bullet.reset(player.x + bulletOffset, player.y + bulletOffset);
+        bullet.angle = player.angle;
+        this.physics.arcade.velocityFromAngle(bullet.angle - 90, bulletSpeed, bullet.body.velocity);
+        bullet.body.velocity.x += player.body.velocity.x;
+      }
+    }
 
   },
 

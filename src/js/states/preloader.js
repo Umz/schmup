@@ -20,6 +20,8 @@ Preloader.prototype = {
     this.load.image('starfield', 'assets/starfield.png');
     this.load.image('ship', 'assets/player.png');
     this.load.image('plasma', 'assets/bluePlasma.png');
+    this.load.image('laser', 'assets/blueLaser.png');
+    this.load.image('bullet', 'assets/blueBullet.png');
 
   },
 
