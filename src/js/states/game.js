@@ -2,6 +2,9 @@ var player;
 var starfield;
 
 var bullets;
+// var bulletTimer = 0;
+var firingSpeed = 3;
+var bulletCounter = firingSpeed;
 
 var cursors;
 var fireButton;
@@ -12,8 +15,10 @@ var ship = {
   'maxSpeed': 400
 }
 
+var timer = new Phaser.Timer(this);
 
-// TODO: var game = this for readability
+var game = this; // TODO: change everywhere for readability and to maintain scope.
+
 var Game = function() {
   this.testentity = null;
 };
@@ -23,6 +28,8 @@ module.exports = Game;
 Game.prototype = {
 
   create: function() {
+
+
     //  We're going to be using physics, so enable the Arcade Physics system
     //  The scrolling starfield background
     starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
@@ -40,7 +47,7 @@ Game.prototype = {
     // The player's ship
     player = this.add.sprite(400, 500, 'ship');
     this.physics.arcade.enable(player);
-    
+
     // Set ship physics
     player.body
       .maxVelocity.setTo(ship.maxSpeed, ship.maxSpeed);
@@ -71,8 +78,7 @@ Game.prototype = {
 
     if (cursors.left.isDown) {
       player.body.acceleration.x = -ship.acceleration;
-    }
-    else if (cursors.right.isDown) {
+    } else if (cursors.right.isDown) {
       player.body.acceleration.x = ship.acceleration;
     }
 
@@ -99,20 +105,28 @@ Game.prototype = {
     shipTrail.x = player.x;
 
     function fireBullet() {
+
+
       var bullet = bullets.getFirstExists(false);
       var bulletSpeed = 400;
 
-      if (bullet) {
-        
-        // Bullets angle and velocity based on ship physics.
-        var bulletOffset = 20 * Math.sin(Math.degToRad(player.angle));
-        bullet.reset(player.x + bulletOffset, player.y + bulletOffset);
-        bullet.angle = player.angle;
-        this.physics.arcade.velocityFromAngle(bullet.angle - 90, bulletSpeed, bullet.body.velocity);
-        bullet.body.velocity.x += player.body.velocity.x;
-      }
-    }
+      if (bulletCounter > firingSpeed) {
 
+        bulletCounter = 0;
+
+        // Bullet physics
+        if (bullet) {
+          bullet.reset(player.x, player.y - 25);
+
+          bullet.body.velocity.y = -200;
+          bullet.body.velocity.x += player.body.velocity.x / 5;
+          console.log("Firing attempt");
+          // Firing speed logic
+          // bulletTimer = Game.time.now += firingDelay;
+        }
+      }
+      bulletCounter++;
+    }
   },
 
   onInputDown: function() {
