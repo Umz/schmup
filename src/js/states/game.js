@@ -34,6 +34,18 @@ Game.prototype = {
     //  The scrolling starfield background
     starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
 
+    // Enemies -- Drones
+    droneScouts = this.add.group();
+    droneScouts.enableBody = true;
+    droneScouts.physicsBodyType = Phaser.Physics.ARCADE;
+    droneScouts.createMultiple(5, 'droneScouts');
+    droneScouts.setAll('anchor.x', 0.5);
+    droneScouts.setAll('anchor.y', 0.5);
+    droneScouts.setAll('angle', 180);
+    droneScouts.setAll('outOfBoundsKill', true);
+    droneScouts.setAll('checkWorldBounds', true);
+
+
     // The bullet group
     bullets = this.add.group();
     bullets.enableBody = true;

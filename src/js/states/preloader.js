@@ -22,6 +22,7 @@ Preloader.prototype = {
     this.load.image('plasma', 'assets/bluePlasma.png');
     this.load.image('laser', 'assets/blueLaser.png');
     this.load.image('bullet', 'assets/blueBullet.png');
+    this.load.image('droneScout', 'assets/droneScout.png');
 
   },
 
