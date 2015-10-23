@@ -1,6 +1,7 @@
 var player;
 var starfield;
 
+var explosions;
 var bullets;
 // var bulletTimer = 0;
 var firingSpeed = 3;
@@ -15,9 +16,9 @@ var ship = {
   'maxSpeed': 400
 }
 
-var timer = new Phaser.Timer(this);
 
-var game = this; // TODO: change everywhere for readability and to maintain scope.
+console.log(this);
+ // TODO: change everywhere for readability and to maintain scope. game = this
 
 var Game = function() {
   this.testentity = null;
@@ -29,8 +30,6 @@ Game.prototype = {
 
   create: function() {
 
-
-    //  We're going to be using physics, so enable the Arcade Physics system
     //  The scrolling starfield background
     starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
 
@@ -38,13 +37,33 @@ Game.prototype = {
     droneScouts = this.add.group();
     droneScouts.enableBody = true;
     droneScouts.physicsBodyType = Phaser.Physics.ARCADE;
-    droneScouts.createMultiple(5, 'droneScouts');
+    droneScouts.createMultiple(5, 'droneScout');
     droneScouts.setAll('anchor.x', 0.5);
     droneScouts.setAll('anchor.y', 0.5);
     droneScouts.setAll('angle', 180);
     droneScouts.setAll('outOfBoundsKill', true);
     droneScouts.setAll('checkWorldBounds', true);
 
+    // Broken enemy trail emitter code
+
+    // droneScouts.forEach(function(enemy) {
+    //   addEnemyEmitterTrail(enemy);
+    //   enemy.events.onKilled.add(function() {
+    //     enemy.trail.kill();
+    //   });
+    // });
+    // function addEnemyEmitterTrail(enemy) {
+    //     var enemyTrail = droneScouts.game.add.emitter(enemy.x, enemy.y - 25, 100);
+    //     enemyTrail.width = 10;
+    //     enemyTrail.makeParticles('enemyTrail', [1, 2, 3, 4, 5]);
+    //     enemyTrail.setXSpeed(20, -20);
+    //     enemyTrail.setRotation(50, -50);
+    //     enemyTrail.setAlpha(0.4, 0, 800);
+    //     enemyTrail.setScale(0.01, 0.1, 0.01, 0.1, 1000, Phaser.Easing.Quintic.Out);
+    //     enemy.trail = enemyTrail;
+    //   }
+
+    launchDroneScouts(randomIntegerFrom(3, 7));
 
     // The bullet group
     bullets = this.add.group();
@@ -55,6 +74,17 @@ Game.prototype = {
     bullets.setAll('anchor.y', 1);
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
+
+    // Explosion group
+    explosions = this.add.group();
+   explosions.enableBody = true;
+   explosions.physicsBodyType = Phaser.Physics.ARCADE;
+   explosions.createMultiple(30, 'explosion');
+   explosions.setAll('anchor.x', 0.5);
+   explosions.setAll('anchor.y', 0.5);
+   explosions.forEach( function(explosion) {
+       explosion.animations.add('explosion');
+   });
 
     // The player's ship
     player = this.add.sprite(400, 500, 'ship');
@@ -81,10 +111,47 @@ Game.prototype = {
     // Set controls
     cursors = this.input.keyboard.createCursorKeys();
     fireButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+    function randomIntegerFrom(min, max) {
+      return Math.floor(Math.random() * (max - min) + min + 1);
+    }
+
+    function launchDroneScouts(quantity) {
+      for (var i = 0; i < quantity; i++) {
+        launchDroneScout();
+      }
+    }
+
+    // Enemy creation functions
+    function launchDroneScout() {
+      var minSpacing = 300;
+      var maxSpacing = 3000;
+      var enemySpeed = 300;
+
+      var enemy = droneScouts.getFirstExists(false);
+      if (enemy) {
+        enemy.reset(randomIntegerFrom(0, 600), -20);
+        enemy.body.velocity.x = randomIntegerFrom(-300, 300);
+        enemy.body.velocity.y = enemySpeed;
+        enemy.body.drag.x = 100;
+        
+        // More broken enemy trail code.
+        // enemy.trail.start(false, 800, 1);
+
+        enemy.update = function() {
+          // enemy.trail.x = enemy.x;
+          // enemy.trail.y = enemy.y - 10;
+        }
+      }
+    }
+
   },
 
   update: function() {
     starfield.tilePosition.y += 2;
+
+    this.physics.arcade.overlap(player, droneScouts, shipCollide, null, this);
+    this.physics.arcade.overlap(bullets, droneScouts, shipCollide, null, this);
 
     player.body.acceleration.x = 0;
 
@@ -139,6 +206,16 @@ Game.prototype = {
       }
       bulletCounter++;
     }
+
+    function shipCollide(player, enemy){
+      var explosion = explosions.getFirstExists(false);
+      explosion.reset(enemy.body.x + enemy.body.halfWidth, enemy.body.y + enemy.body.halfHeight);
+      explosion.body.velocity.y = enemy.body.velocity.y;
+      explosion.alpha = 0.7;
+      explosion.play('explosion', 30, false, true);
+      enemy.kill();
+    }
+
   },
 
   onInputDown: function() {

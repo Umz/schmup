@@ -14,7 +14,6 @@ Preloader.prototype = {
 
     this.physics.startSystem(Phaser.Physics.ARCADE);
 
-
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
     this.load.setPreloadSprite(this.asset);
     this.load.image('starfield', 'assets/starfield.png');
@@ -23,7 +22,8 @@ Preloader.prototype = {
     this.load.image('laser', 'assets/blueLaser.png');
     this.load.image('bullet', 'assets/blueBullet.png');
     this.load.image('droneScout', 'assets/droneScout.png');
-
+    this.load.image('enemyTrail', 'assets/enemyTrail.png');
+    this.load.spritesheet('explosion', 'assets/explosion.png', 128, 128);
   },
 
   create: function () {
