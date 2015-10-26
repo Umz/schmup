@@ -2,14 +2,14 @@
 var player;
 var playerShields;
 var gameOver;
-var droneScouts;
 
+var droneScouts;
+var enemyReleaseCounter = 0;
 
 var starfield;
 
 var explosions;
 var bullets;
-// var bulletTimer = 0;
 var firingSpeed = 3;
 var bulletCounter = firingSpeed;
 
@@ -147,8 +147,8 @@ Game.prototype = {
     enemyReleaseCounter++;
     console.log(enemyReleaseCounter);
 
-    if (enemyReleaseCounter % 500 === 0) {
-      this.launchEnemies(3, droneScouts);
+    if (enemyReleaseCounter % 185 === 0) {
+      this.launchEnemies(this.randomIntegerFrom(3, 7), droneScouts);
     }
 
     // Check collisions
@@ -257,7 +257,7 @@ Game.prototype = {
       var minSpacing = 300;
       var maxSpacing = 3000;
       var enemySpeed = 300;
-      var enemyLocation = game.randomIntegerFrom(0, 600);
+      var enemyLocation = game.randomIntegerFrom(50, 750);
 
       var enemy = enemyGroup.getFirstExists(false);
       if (enemy) {
