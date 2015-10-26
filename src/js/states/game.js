@@ -1,4 +1,6 @@
 var player;
+var playerShield;
+
 var starfield;
 
 var explosions;
@@ -33,6 +35,36 @@ Game.prototype = {
     //  The scrolling starfield background
     starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
 
+    // The player's ship
+    player = this.add.sprite(400, 500, 'ship');
+    this.physics.arcade.enable(player);
+    player.health = 100;
+    player.events.onKilled.add(function(){
+      shipTrail.kill();
+    });
+
+    // Set ship physics
+    player.body
+      .maxVelocity.setTo(ship.maxSpeed, ship.maxSpeed);
+    player.body
+      .drag.setTo(ship.drag, ship.drag);
+    player.anchor.setTo(0.5, 0.5);
+
+    // Set ship trail emitter
+    shipTrail = this.add.emitter(player.x, player.y + 40, 400);
+    shipTrail.width = 10;
+    shipTrail.makeParticles('plasma');
+    shipTrail.setXSpeed(30, -30);
+    shipTrail.setYSpeed(200, 180);
+    shipTrail.setRotation(50, -50);
+    shipTrail.setAlpha(1, 0.01, 800);
+    shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
+    shipTrail.start(false, 5000, 10);
+
+    // Set controls
+    cursors = this.input.keyboard.createCursorKeys();
+    fireButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
     // Enemies -- Drones
     droneScouts = this.add.group();
     droneScouts.enableBody = true;
@@ -43,6 +75,9 @@ Game.prototype = {
     droneScouts.setAll('angle', 180);
     droneScouts.setAll('outOfBoundsKill', true);
     droneScouts.setAll('checkWorldBounds', true);
+    droneScouts.forEach(function(enemy) {
+      enemy.damage = 20;
+    });
 
     // Broken enemy trail emitter code
 
@@ -76,7 +111,7 @@ Game.prototype = {
     bullets.setAll('checkWorldBounds', true);
 
     // Explosion group
-    explosions = this.add.group();
+   explosions = this.add.group();
    explosions.enableBody = true;
    explosions.physicsBodyType = Phaser.Physics.ARCADE;
    explosions.createMultiple(30, 'explosion');
@@ -85,32 +120,6 @@ Game.prototype = {
    explosions.forEach( function(explosion) {
        explosion.animations.add('explosion');
    });
-
-    // The player's ship
-    player = this.add.sprite(400, 500, 'ship');
-    this.physics.arcade.enable(player);
-
-    // Set ship physics
-    player.body
-      .maxVelocity.setTo(ship.maxSpeed, ship.maxSpeed);
-    player.body
-      .drag.setTo(ship.drag, ship.drag);
-    player.anchor.setTo(0.5, 0.5);
-
-    // Set ship trail emitter
-    shipTrail = this.add.emitter(player.x, player.y + 40, 400);
-    shipTrail.width = 10;
-    shipTrail.makeParticles('plasma');
-    shipTrail.setXSpeed(30, -30);
-    shipTrail.setYSpeed(200, 180);
-    shipTrail.setRotation(50, -50);
-    shipTrail.setAlpha(1, 0.01, 800);
-    shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
-    shipTrail.start(false, 5000, 10);
-
-    // Set controls
-    cursors = this.input.keyboard.createCursorKeys();
-    fireButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     function randomIntegerFrom(min, max) {
       return Math.floor(Math.random() * (max - min) + min + 1);
@@ -151,7 +160,7 @@ Game.prototype = {
     starfield.tilePosition.y += 2;
 
     this.physics.arcade.overlap(player, droneScouts, shipCollide, null, this);
-    this.physics.arcade.overlap(bullets, droneScouts, shipCollide, null, this);
+    this.physics.arcade.overlap(bullets, droneScouts, hitEnemy, null, this);
 
     player.body.acceleration.x = 0;
 
@@ -214,6 +223,16 @@ Game.prototype = {
       explosion.alpha = 0.7;
       explosion.play('explosion', 30, false, true);
       enemy.kill();
+    }
+
+    function hitEnemy(bullet, enemy){
+      var explosion = explosions.getFirstExists(false);
+      explosion.reset(enemy.body.x + enemy.body.halfWidth, enemy.body.y + enemy.body.halfHeight);
+      explosion.body.velocity.y = enemy.body.velocity.y;
+      explosion.alpha = 0.7;
+      explosion.play('explosion', 30, false, true);
+      enemy.kill();
+      bullet.kill();
     }
 
   },
