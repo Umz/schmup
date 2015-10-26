@@ -1,6 +1,9 @@
+'use strict';
 var player;
 var playerShields;
 var gameOver;
+var droneScouts;
+
 
 var starfield;
 
@@ -17,11 +20,8 @@ var ship = {
   'acceleration': 600,
   'drag': 350,
   'maxSpeed': 400
-}
-
-
-console.log(this);
- // TODO: change everywhere for readability and to maintain scope. game = this
+};
+var shipTrail;
 
 var Game = function() {
   this.testentity = null;
@@ -39,15 +39,18 @@ Game.prototype = {
     // The player's ship
     player = this.add.sprite(400, 500, 'ship');
     this.physics.arcade.enable(player);
-    player.events.onKilled.add(function(){
+    player.events.onKilled.add(function() {
       shipTrail.kill();
     });
 
     //Ship HUD and stats
     player.health = 100;
-    playerShields = this.add.text(this.world.width - 150, 10, 'Shields: ' + player.health +'%', { font: '20px Arial', fill: '#fff' });
-    playerShields.render = function(){
-      playerShields.text = 'Shields: ' + Math.max(player.health, 0) +'%';
+    playerShields = this.add.text(this.world.width - 150, 10, 'Shields: ' + player.health + '%', {
+      font: '20px Arial',
+      fill: '#fff'
+    });
+    playerShields.render = function() {
+      playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
     };
 
     // Set ship physics
@@ -105,7 +108,7 @@ Game.prototype = {
     //     enemy.trail = enemyTrail;
     //   }
 
-    launchDroneScouts(randomIntegerFrom(3, 7));
+    this.launchEnemies(this.randomIntegerFrom(3, 5), droneScouts);
 
     // The bullet group
     bullets = this.add.group();
@@ -118,73 +121,50 @@ Game.prototype = {
     bullets.setAll('checkWorldBounds', true);
 
     // Explosion group
-   explosions = this.add.group();
-   explosions.enableBody = true;
-   explosions.physicsBodyType = Phaser.Physics.ARCADE;
-   explosions.createMultiple(30, 'explosion');
-   explosions.setAll('anchor.x', 0.5);
-   explosions.setAll('anchor.y', 0.5);
-   explosions.forEach( function(explosion) {
-       explosion.animations.add('explosion');
-   });
+    explosions = this.add.group();
+    explosions.enableBody = true;
+    explosions.physicsBodyType = Phaser.Physics.ARCADE;
+    explosions.createMultiple(30, 'explosion');
+    explosions.setAll('anchor.x', 0.5);
+    explosions.setAll('anchor.y', 0.5);
+    explosions.forEach(function(explosion) {
+      explosion.animations.add('explosion');
+    });
 
-   // Messages
-   gameOver = this.add.text(this.world.centerX, this.world.centerY, 'GAME OVER!', {FONT: '84px Arial', fill: '#fff'});
-   gameOver.anchor.setTo(0.5, 0.5);
-   gameOver.visible = false;
-
-   // Utility functions
-    function randomIntegerFrom(min, max) {
-      return Math.floor(Math.random() * (max - min) + min + 1);
-    }
-
-    // Enemy creation functions
-    function launchDroneScouts(quantity) {
-      for (var i = 0; i < quantity; i++) {
-        launchDroneScout();
-      }
-    }
-
-    function launchDroneScout() {
-      var minSpacing = 300;
-      var maxSpacing = 3000;
-      var enemySpeed = 300;
-
-      var enemy = droneScouts.getFirstExists(false);
-      if (enemy) {
-        enemy.reset(randomIntegerFrom(0, 600), -20);
-        enemy.body.velocity.x = randomIntegerFrom(-300, 300);
-        enemy.body.velocity.y = enemySpeed;
-        enemy.body.drag.x = 100;
-        
-        // More broken enemy trail code.
-        // enemy.trail.start(false, 800, 1);
-
-        enemy.update = function() {
-          // enemy.trail.x = enemy.x;
-          // enemy.trail.y = enemy.y - 10;
-        }
-      }
-    }
+    // Messages
+    gameOver = this.add.text(this.world.centerX, this.world.centerY, 'GAME OVER!', {
+      FONT: '84px Arial',
+      fill: '#fff'
+    });
+    gameOver.anchor.setTo(0.5, 0.5);
+    gameOver.visible = false;
 
   },
 
   update: function() {
     starfield.tilePosition.y += 2;
 
+    enemyReleaseCounter++;
+    console.log(enemyReleaseCounter);
+
+    if (enemyReleaseCounter % 500 === 0) {
+      this.launchEnemies(3, droneScouts);
+    }
 
     // Check collisions
     this.physics.arcade.overlap(player, droneScouts, shipCollide, null, this);
     this.physics.arcade.overlap(bullets, droneScouts, hitEnemy, null, this);
 
     // Check for Game Over
-    if (!player.alive && gameOver.visible == false){
+    if (!player.alive && gameOver.visible == false) {
       gameOver.visible = true;
       var fadeInGameOver = this.add.tween(gameOver);
-      fadeInGameOver.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
+      fadeInGameOver.to({
+        alpha: 1
+      }, 1000, Phaser.Easing.Quintic.Out);
       fadeInGameOver.onComplete.add(setResetHandlers);
       fadeInGameOver.start();
-      
+
       function setResetHandlers() {
         // Reset logic goes here...
       }
@@ -212,17 +192,15 @@ Game.prototype = {
       player.body.acceleration.x = 0;
     }
 
-
     // Ship banking logic
     // TODO: put this in the ship object
-    bank = player.body.velocity.x / ship.maxSpeed;
+    var bank = player.body.velocity.x / ship.maxSpeed;
     player.scale.x = 1 - Math.abs(bank) / 4;
     player.angle = bank * 5;
 
     shipTrail.x = player.x;
 
     function fireBullet() {
-
 
       var bullet = bullets.getFirstExists(false);
       var bulletSpeed = 400;
@@ -245,7 +223,7 @@ Game.prototype = {
       bulletCounter++;
     }
 
-    function shipCollide(player, enemy){
+    function shipCollide(player, enemy) {
       var explosion = explosions.getFirstExists(false);
       explosion.reset(enemy.body.x + enemy.body.halfWidth, enemy.body.y + enemy.body.halfHeight);
       explosion.body.velocity.y = enemy.body.velocity.y;
@@ -257,7 +235,7 @@ Game.prototype = {
       playerShields.render();
     }
 
-    function hitEnemy(bullet, enemy){
+    function hitEnemy(bullet, enemy) {
       var explosion = explosions.getFirstExists(false);
       explosion.reset(enemy.body.x + enemy.body.halfWidth, enemy.body.y + enemy.body.halfHeight);
       explosion.body.velocity.y = enemy.body.velocity.y;
@@ -267,6 +245,41 @@ Game.prototype = {
       bullet.kill();
     }
 
+  },
+
+  launchEnemies: function(quantity, enemyGroup) {
+    var game = this;
+    for (var i = 0; i < quantity; i++) {
+      launchEnemy();
+    }
+
+    function launchEnemy() {
+      var minSpacing = 300;
+      var maxSpacing = 3000;
+      var enemySpeed = 300;
+      var enemyLocation = game.randomIntegerFrom(0, 600);
+
+      var enemy = enemyGroup.getFirstExists(false);
+      if (enemy) {
+        enemy.reset(enemyLocation, -20);
+        enemy.body.velocity.x = game.randomIntegerFrom(-300, 300);
+        enemy.body.velocity.y = enemySpeed;
+        enemy.body.drag.x = 100;
+
+        // More broken enemy trail code.
+        // enemy.trail.start(false, 800, 1);
+
+        enemy.update = function() {
+          // enemy.trail.x = enemy.x;
+          // enemy.trail.y = enemy.y - 10;
+        }
+      }
+    }
+  },
+
+  // Utility functions
+  randomIntegerFrom: function(min, max) {
+    return Math.floor(Math.random() * (max - min) + min + 1);
   },
 
   onInputDown: function() {
