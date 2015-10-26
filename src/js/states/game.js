@@ -1,5 +1,6 @@
 var player;
-var playerShield;
+var playerShields;
+var gameOver;
 
 var starfield;
 
@@ -38,10 +39,16 @@ Game.prototype = {
     // The player's ship
     player = this.add.sprite(400, 500, 'ship');
     this.physics.arcade.enable(player);
-    player.health = 100;
     player.events.onKilled.add(function(){
       shipTrail.kill();
     });
+
+    //Ship HUD and stats
+    player.health = 100;
+    playerShields = this.add.text(this.world.width - 150, 10, 'Shields: ' + player.health +'%', { font: '20px Arial', fill: '#fff' });
+    playerShields.render = function(){
+      playerShields.text = 'Shields: ' + Math.max(player.health, 0) +'%';
+    };
 
     // Set ship physics
     player.body
@@ -76,7 +83,7 @@ Game.prototype = {
     droneScouts.setAll('outOfBoundsKill', true);
     droneScouts.setAll('checkWorldBounds', true);
     droneScouts.forEach(function(enemy) {
-      enemy.damage = 20;
+      enemy.damageAmount = 20;
     });
 
     // Broken enemy trail emitter code
@@ -121,17 +128,23 @@ Game.prototype = {
        explosion.animations.add('explosion');
    });
 
+   // Messages
+   gameOver = this.add.text(this.world.centerX, this.world.centerY, 'GAME OVER!', {FONT: '84px Arial', fill: '#fff'});
+   gameOver.anchor.setTo(0.5, 0.5);
+   gameOver.visible = false;
+
+   // Utility functions
     function randomIntegerFrom(min, max) {
       return Math.floor(Math.random() * (max - min) + min + 1);
     }
 
+    // Enemy creation functions
     function launchDroneScouts(quantity) {
       for (var i = 0; i < quantity; i++) {
         launchDroneScout();
       }
     }
 
-    // Enemy creation functions
     function launchDroneScout() {
       var minSpacing = 300;
       var maxSpacing = 3000;
@@ -159,8 +172,23 @@ Game.prototype = {
   update: function() {
     starfield.tilePosition.y += 2;
 
+
+    // Check collisions
     this.physics.arcade.overlap(player, droneScouts, shipCollide, null, this);
     this.physics.arcade.overlap(bullets, droneScouts, hitEnemy, null, this);
+
+    // Check for Game Over
+    if (!player.alive && gameOver.visible == false){
+      gameOver.visible = true;
+      var fadeInGameOver = this.add.tween(gameOver);
+      fadeInGameOver.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
+      fadeInGameOver.onComplete.add(setResetHandlers);
+      fadeInGameOver.start();
+      
+      function setResetHandlers() {
+        // Reset logic goes here...
+      }
+    }
 
     player.body.acceleration.x = 0;
 
@@ -170,7 +198,7 @@ Game.prototype = {
       player.body.acceleration.x = ship.acceleration;
     }
 
-    if (fireButton.isDown) {
+    if (player.alive && fireButton.isDown) {
       fireBullet();
     }
 
@@ -183,6 +211,7 @@ Game.prototype = {
       player.x = 50;
       player.body.acceleration.x = 0;
     }
+
 
     // Ship banking logic
     // TODO: put this in the ship object
@@ -223,6 +252,9 @@ Game.prototype = {
       explosion.alpha = 0.7;
       explosion.play('explosion', 30, false, true);
       enemy.kill();
+
+      player.damage(enemy.damageAmount);
+      playerShields.render();
     }
 
     function hitEnemy(bullet, enemy){
