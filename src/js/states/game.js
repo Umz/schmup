@@ -1,7 +1,11 @@
 'use strict';
 var player;
 var playerShields;
+
 var gameOver;
+
+var score = 0;
+var scoreText;
 
 var droneScouts;
 var enemyReleaseCounter = 0;
@@ -17,9 +21,9 @@ var cursors;
 var fireButton;
 
 var ship = {
-  'acceleration': 600,
-  'drag': 350,
-  'maxSpeed': 400
+  acceleration: 600,
+  drag: 350,
+  maxSpeed: 400
 };
 var shipTrail;
 
@@ -52,6 +56,13 @@ Game.prototype = {
     playerShields.render = function() {
       playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
     };
+
+    // Score
+    scoreText = this.add.text(10, 10, '', {font: '20px Arial', fill: '#fff'});
+    scoreText.render = function() {
+      scoreText.text = 'Score: ' + score;
+    };
+    scoreText.render();
 
     // Set ship physics
     player.body
@@ -87,6 +98,7 @@ Game.prototype = {
     droneScouts.setAll('checkWorldBounds', true);
     droneScouts.forEach(function(enemy) {
       enemy.damageAmount = 20;
+      enemy.level = 2;
     });
 
     // Broken enemy trail emitter code
@@ -145,8 +157,7 @@ Game.prototype = {
     starfield.tilePosition.y += 2;
 
     enemyReleaseCounter++;
-    console.log(enemyReleaseCounter);
-
+    
     if (enemyReleaseCounter % 185 === 0) {
       this.launchEnemies(this.randomIntegerFrom(3, 7), droneScouts);
     }
@@ -158,6 +169,7 @@ Game.prototype = {
     // Check for Game Over
     if (!player.alive && gameOver.visible == false) {
       gameOver.visible = true;
+      gameOver.alpha = 0;
       var fadeInGameOver = this.add.tween(gameOver);
       fadeInGameOver.to({
         alpha: 1
@@ -233,6 +245,7 @@ Game.prototype = {
 
       player.damage(enemy.damageAmount);
       playerShields.render();
+      addPointsForKilling(enemy);
     }
 
     function hitEnemy(bullet, enemy) {
@@ -243,6 +256,15 @@ Game.prototype = {
       explosion.play('explosion', 30, false, true);
       enemy.kill();
       bullet.kill();
+      addPointsForKilling(enemy);
+    }
+
+    function addPointsForKilling(enemy) {
+      console.log(enemy);
+      console.log(enemy.level);
+      console.log(enemy.damageAmount);
+      score += enemy.damageAmount * enemy.level;
+      scoreText.render();
     }
 
   },
@@ -275,6 +297,17 @@ Game.prototype = {
         }
       }
     }
+  },
+
+  restart: function () {
+    droneScouts.callAll('kill');
+    enemyReleaseCounter = 0;
+    player.revive();
+    player.health = 100;
+    shields.render();
+    score = 0;
+    scoreText.render();
+    gameOver.visible = false;
   },
 
   // Utility functions
