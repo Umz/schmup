@@ -36,6 +36,7 @@ module.exports = Game;
 Game.prototype = {
 
   create: function() {
+    var game = this;
 
     //  The scrolling starfield background
     starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
@@ -154,10 +155,12 @@ Game.prototype = {
   },
 
   update: function() {
+    var game = this;
+
     starfield.tilePosition.y += 2;
 
     enemyReleaseCounter++;
-    
+
     if (enemyReleaseCounter % 185 === 0) {
       this.launchEnemies(this.randomIntegerFrom(3, 7), droneScouts);
     }
@@ -178,7 +181,13 @@ Game.prototype = {
       fadeInGameOver.start();
 
       function setResetHandlers() {
-        // Reset logic goes here...
+        var tapRestart = game.input.onTap.addOnce(_restart, game);
+        var spaceRestart = fireButton.onDown.addOnce(_restart, game);
+        function _restart() {
+          tapRestart.detach();
+          spaceRestart.detach();
+          game.restart();
+        }
       }
     }
 
@@ -304,7 +313,7 @@ Game.prototype = {
     enemyReleaseCounter = 0;
     player.revive();
     player.health = 100;
-    shields.render();
+    playerShields.render();
     score = 0;
     scoreText.render();
     gameOver.visible = false;
