@@ -1,7 +1,7 @@
 'use strict';
 var player;
-var playerShields;
 
+var playerShields;
 var gameOver;
 
 var score = 0;
@@ -47,23 +47,6 @@ Game.prototype = {
     player.events.onKilled.add(function() {
       shipTrail.kill();
     });
-
-    //Ship HUD and stats
-    player.health = 100;
-    playerShields = this.add.text(this.world.width - 150, 10, 'Shields: ' + player.health + '%', {
-      font: '20px Arial',
-      fill: '#fff'
-    });
-    playerShields.render = function() {
-      playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
-    };
-
-    // Score
-    scoreText = this.add.text(10, 10, '', {font: '20px Arial', fill: '#fff'});
-    scoreText.render = function() {
-      scoreText.text = 'Score: ' + score;
-    };
-    scoreText.render();
 
     // Set ship physics
     player.body
@@ -144,12 +127,25 @@ Game.prototype = {
       explosion.animations.add('explosion');
     });
 
+    //Ship HUD and stats
+    player.health = 100;
+    playerShields = this.add.bitmapText(this.world.width - 250, 10, 'spacefont', '' + player.health +'%', 20);
+    playerShields.render = function() {
+      playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
+    };
+    playerShields.render();
+
+    // Score
+    scoreText = this.add.bitmapText(10, 10, 'spacefont', '', 20);
+    scoreText.render = function() {
+      scoreText.text = 'Score: ' + score;
+    };
+    scoreText.render();
+
     // Messages
-    gameOver = this.add.text(this.world.centerX, this.world.centerY, 'GAME OVER!', {
-      FONT: '84px Arial',
-      fill: '#fff'
-    });
-    gameOver.anchor.setTo(0.5, 0.5);
+    gameOver = this.add.bitmapText(this.world.centerX, this.world.centerY, 'spacefont', 'GAME OVER!', 50);
+    gameOver.x = gameOver.x - gameOver.textWidth / 2;
+    gameOver.y = gameOver.y - gameOver.textHeight / 3;
     gameOver.visible = false;
 
   },
@@ -222,7 +218,6 @@ Game.prototype = {
     shipTrail.x = player.x;
 
     function fireBullet() {
-
       var bullet = bullets.getFirstExists(false);
       var bulletSpeed = 400;
 
@@ -236,9 +231,6 @@ Game.prototype = {
 
           bullet.body.velocity.y = -200;
           bullet.body.velocity.x += player.body.velocity.x / 5;
-          console.log("Firing attempt");
-          // Firing speed logic
-          // bulletTimer = Game.time.now += firingDelay;
         }
       }
       bulletCounter++;
@@ -269,9 +261,6 @@ Game.prototype = {
     }
 
     function addPointsForKilling(enemy) {
-      console.log(enemy);
-      console.log(enemy.level);
-      console.log(enemy.damageAmount);
       score += enemy.damageAmount * enemy.level;
       scoreText.render();
     }
@@ -296,14 +285,6 @@ Game.prototype = {
         enemy.body.velocity.x = game.randomIntegerFrom(-300, 300);
         enemy.body.velocity.y = enemySpeed;
         enemy.body.drag.x = 100;
-
-        // More broken enemy trail code.
-        // enemy.trail.start(false, 800, 1);
-
-        enemy.update = function() {
-          // enemy.trail.x = enemy.x;
-          // enemy.trail.y = enemy.y - 10;
-        }
       }
     }
   },

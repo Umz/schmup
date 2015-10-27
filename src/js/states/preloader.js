@@ -24,6 +24,7 @@ Preloader.prototype = {
     this.load.image('droneScout', 'assets/droneScout.png');
     this.load.image('enemyTrail', 'assets/enemyTrail.png');
     this.load.spritesheet('explosion', 'assets/explosion.png', 128, 128);
+    this.load.bitmapFont('spacefont', 'assets/spacefont/spacefont.png', 'assets/spacefont/spacefont.fnt');
   },
 
   create: function () {
