@@ -39,11 +39,11 @@ Game.prototype = {
     var game = this;
 
     //  The scrolling starfield background
-    starfield = this.add.tileSprite(0, 0, 800, 600, 'starfield');
+    starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
 
     // The player's ship
-    player = this.add.sprite(400, 500, 'ship');
-    this.physics.arcade.enable(player);
+    player = game.add.sprite(400, 500, 'ship');
+    game.physics.arcade.enable(player);
     player.events.onKilled.add(function() {
       shipTrail.kill();
     });
@@ -56,7 +56,7 @@ Game.prototype = {
     player.anchor.setTo(0.5, 0.5);
 
     // Set ship trail emitter
-    shipTrail = this.add.emitter(player.x, player.y + 40, 400);
+    shipTrail = game.add.emitter(player.x, player.y + 40, 400);
     shipTrail.width = 10;
     shipTrail.makeParticles('plasma');
     shipTrail.setXSpeed(30, -30);
@@ -67,11 +67,11 @@ Game.prototype = {
     shipTrail.start(false, 5000, 10);
 
     // Set controls
-    cursors = this.input.keyboard.createCursorKeys();
-    fireButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    cursors = game.input.keyboard.createCursorKeys();
+    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     // Enemies -- Drones
-    droneScouts = this.add.group();
+    droneScouts = game.add.group();
     droneScouts.enableBody = true;
     droneScouts.physicsBodyType = Phaser.Physics.ARCADE;
     droneScouts.createMultiple(5, 'droneScout');
@@ -104,10 +104,10 @@ Game.prototype = {
     //     enemy.trail = enemyTrail;
     //   }
 
-    this.launchEnemies(this.randomIntegerFrom(3, 5), droneScouts);
+    game.launchEnemies(game.randomIntegerFrom(3, 5), droneScouts);
 
     // The bullet group
-    bullets = this.add.group();
+    bullets = game.add.group();
     bullets.enableBody = true;
     bullets.physicsBodyType = Phaser.Physics.ARCADE;
     bullets.createMultiple(30, 'bullet');
@@ -117,7 +117,7 @@ Game.prototype = {
     bullets.setAll('checkWorldBounds', true);
 
     // Explosion group
-    explosions = this.add.group();
+    explosions = game.add.group();
     explosions.enableBody = true;
     explosions.physicsBodyType = Phaser.Physics.ARCADE;
     explosions.createMultiple(30, 'explosion');
@@ -129,21 +129,21 @@ Game.prototype = {
 
     //Ship HUD and stats
     player.health = 100;
-    playerShields = this.add.bitmapText(this.world.width - 250, 10, 'spacefont', '' + player.health +'%', 20);
+    playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health +'%', 20);
     playerShields.render = function() {
       playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
     };
     playerShields.render();
 
     // Score
-    scoreText = this.add.bitmapText(10, 10, 'spacefont', '', 20);
+    scoreText = game.add.bitmapText(10, 10, 'spacefont', '', 20);
     scoreText.render = function() {
       scoreText.text = 'Score: ' + score;
     };
     scoreText.render();
 
     // Messages
-    gameOver = this.add.bitmapText(this.world.centerX, this.world.centerY, 'spacefont', 'GAME OVER!', 50);
+    gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
     gameOver.x = gameOver.x - gameOver.textWidth / 2;
     gameOver.y = gameOver.y - gameOver.textHeight / 3;
     gameOver.visible = false;
