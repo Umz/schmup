@@ -53,33 +53,25 @@ Game.prototype = {
   create: function() {
     var game = this;
 
-    //  The scrolling starfield background
     starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
 
-    // The player's ship
-    player = game.add.sprite(400, 500, 'ship');
-    game.physics.arcade.enable(player);
-    player.events.onKilled.add(function() {
-      shipTrail.kill();
-    });
+    createPlayerShip();
 
-    // Set ship physics
-    player.body
-      .maxVelocity.setTo(ship.maxSpeed, ship.maxSpeed);
-    player.body
-      .drag.setTo(ship.drag, ship.drag);
-    player.anchor.setTo(0.5, 0.5);
+    function createPlayerShip() {
+      player = game.add.sprite(400, 500, 'ship');
+      game.physics.arcade.enable(player);
+      player.events.onKilled.add(function() {
+        shipTrail.kill();
+      });
 
-    // Set ship trail emitter
-    shipTrail = game.add.emitter(player.x, player.y + 40, 400);
-    shipTrail.width = 10;
-    shipTrail.makeParticles('plasma');
-    shipTrail.setXSpeed(30, -30);
-    shipTrail.setYSpeed(200, 180);
-    shipTrail.setRotation(50, -50);
-    shipTrail.setAlpha(1, 0.01, 800);
-    shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
-    shipTrail.start(false, 5000, 10);
+      player.body
+        .maxVelocity.setTo(ship.maxSpeed, ship.maxSpeed);
+      player.body
+        .drag.setTo(ship.drag, ship.drag);
+      player.anchor.setTo(0.5, 0.5);
+
+      game.createShipTrail(player, 'plasma');
+    }
 
     // Set controls
     cursors = game.input.keyboard.createCursorKeys();
@@ -390,6 +382,18 @@ Game.prototype = {
       }
     }
   },
+
+  createShipTrail: function(ship, particleName) {
+        shipTrail = this.add.emitter(ship.x, ship.y + 40, 400);
+        shipTrail.width = 10;
+        shipTrail.makeParticles(particleName);
+        shipTrail.setXSpeed(30, -30);
+        shipTrail.setYSpeed(200, 180);
+        shipTrail.setRotation(50, -50);
+        shipTrail.setAlpha(1, 0.01, 800);
+        shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
+        shipTrail.start(false, 5000, 10);
+      },
 
   restart: function() {
     droneScouts.callAll('kill');
