@@ -29,6 +29,17 @@ var ship = {
   drag: 350,
   maxSpeed: 400
 };
+
+var size = {
+  xSmall: 0.4,
+  small: 0.5,
+  medium: 0.75,
+  large: 1,
+  xLarge: 1.25,
+  miniBoss: 1.5,
+  boss: 2
+};
+
 var shipTrail;
 
 var Game = function() {
@@ -90,46 +101,60 @@ Game.prototype = {
     });
 
     // Enemies -- Drone Scouts
-    droneScouts.createMultiple(15, 'droneScout');
+    droneScouts.createMultiple(50, 'droneScout');
     droneScouts.minWaveTiming = 140;
-    droneScouts.maxWaveTiming = 240;
+    droneScouts.maxWaveTiming = 380;
     droneScouts.minWaveNumber = 3;
-    droneScouts.maxWaveNumber = 7;
+    droneScouts.maxWaveNumber = 5;
     droneScouts.forEach(function(enemy) {
       enemy.damageAmount = 10;
       enemy.level = 2;
-      enemy.speed = 300;
-      enemy.drag = 100;
+      enemy.speed = game.randomIntegerFrom(250, 450);
+      enemy.drift = 30;
+      enemy.drag = game.randomIntegerFrom(100, 200);
+      enemy.minX = 50;
+      enemy.maxX = 750;
+      enemy.scale.x = size.xSmall;
+      enemy.scale.y = size.xSmall;
     });
 
     // Enemies - Drone Fighters
     droneFighters.createMultiple(10, 'droneFighter');
     droneFighters.minWaveTiming = 190;
-    droneFighters.maxWaveTiming = 350;
-    droneFighters.minWaveNumber = 1;
-    droneFighters.maxWaveNumber = 5;
+    droneFighters.maxWaveTiming = 500;
+    droneFighters.minWaveNumber = 2;
+    droneFighters.maxWaveNumber = 4;
     droneFighters.forEach(function(enemy) {
       enemy.damageAmount = 25;
       enemy.level = 3;
       enemy.speed = game.randomIntegerFrom(100, 400);
+      enemy.drift = game.randomIntegerFrom(200, 300);
       enemy.drag = 50;
+      enemy.minX = 100;
+      enemy.maxX = 700;
+      enemy.scale.x = size.medium;
+      enemy.scale.y = size.medium;
     });
 
     // Enemies = Drone Bombers
     droneBombers.createMultiple(5, 'droneBomber');
-    droneBombers.minWaveTiming = 300;
-    droneBombers.maxWaveTiming = 450;
+    droneBombers.minWaveTiming = 500;
+    droneBombers.maxWaveTiming = 600;
     droneBombers.minWaveNumber = 1;
     droneBombers.maxWaveNumber = 2;
     droneBombers.forEach(function(enemy) {
       enemy.damageAmount = 50;
       enemy.level = 4;
       enemy.speed = 100;
-      enemy.drag =  5;
+      enemy.drift = 5;
+      enemy.drag = 5;
+      enemy.minX = 250;
+      enemy.maxX = 650;
+      enemy.scale.x = size.large;
+      enemy.scale.y = size.large;
     });
 
     function configureEnemies(group) {
-      console.log(group);
       group.physicsBodyType = Phaser.Physics.ARCADE;
       group.enableBody = true;
       group.setAll('anchor.x', 0.5);
@@ -206,9 +231,6 @@ Game.prototype = {
       launchNewWaves(enemy);
 
       function checkWaveTimer(enemy) {
-        console.log("wave timer", enemy.waveTimer);
-        console.log(enemy.minWaveTiming);
-        console.log(enemy.maxWaveTiming);
         if (!enemy.waveTimer) {
           enemy.waveTimer =
             roundToNearestTen(
@@ -357,12 +379,12 @@ Game.prototype = {
     }
 
     function launchEnemy() {
-      var enemyLocation = game.randomIntegerFrom(50, 750);
       var enemy = enemyGroup.getFirstExists(false);
       if (enemy) {
-        console.log(enemy);
+        var enemyLocation = game.randomIntegerFrom(
+          enemy.minX, enemy.maxX);
         enemy.reset(enemyLocation, -20);
-        enemy.body.velocity.x = game.randomIntegerFrom(-enemy.speed, enemy.speed);
+        enemy.body.velocity.x = game.randomIntegerFrom(-enemy.drift, enemy.drift);
         enemy.body.velocity.y = enemy.speed;
         enemy.body.drag.x = enemy.drag;
       }
