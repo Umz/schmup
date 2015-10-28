@@ -83,7 +83,7 @@ Game.prototype = {
     ];
 
     // Default enemy configuration
-    enemies.forEach(function (group) {
+    enemies.forEach(function(group) {
       configureEnemies(group);
     });
 
@@ -92,6 +92,8 @@ Game.prototype = {
     droneScouts.forEach(function(enemy) {
       enemy.damageAmount = 10;
       enemy.level = 2;
+      enemy.speed = 300;
+      enemy.drag = 100;
       enemy.minWaveTiming = 140;
       enemy.maxWaveTiming = 240;
       enemy.minWaveNumber = 3;
@@ -104,6 +106,8 @@ Game.prototype = {
     droneFighters.forEach(function(enemy) {
       enemy.damageAmount = 25;
       enemy.level = 3;
+      enemy.speed = 250;
+      enemy.drag = 75;
       enemy.minWaveTiming = 195;
       enemy.maxWaveTiming = 350;
       enemy.minWaveNumber = 1;
@@ -181,40 +185,35 @@ Game.prototype = {
     var game = this;
 
     starfield.tilePosition.y += 2;
-
     enemyReleaseCounter++;
 
-    if (enemyReleaseCounter % 185 === 0) {
-      this.launchEnemies(this.randomIntegerFrom(3, 7), droneScouts);
-    }
+    enemies.forEach(function(enemy) {
+      checkWaveTimer(enemy);
+      launchNewWaves(enemy);
 
-    // Check collisions
-    this.physics.arcade.overlap(player, droneScouts, shipCollide, null, this);
-    this.physics.arcade.overlap(bullets, droneScouts, hitEnemy, null, this);
-
-    // Check for Game Over
-    if (!player.alive && gameOver.visible == false) {
-      gameOver.visible = true;
-      gameOver.alpha = 0;
-      var fadeInGameOver = this.add.tween(gameOver);
-      fadeInGameOver.to({
-        alpha: 1
-      }, 1000, Phaser.Easing.Quintic.Out);
-      fadeInGameOver.onComplete.add(setResetHandlers);
-      fadeInGameOver.start();
-
-      function setResetHandlers() {
-        var tapRestart = game.input.onTap.addOnce(_restart, game);
-        var spaceRestart = fireButton.onDown.addOnce(_restart, game);
-
-        function _restart() {
-          tapRestart.detach();
-          spaceRestart.detach();
-          game.restart();
+      function checkWaveTimer(enemy) {
+        if (!enemy.waveTimer) {
+          enemy.waveTimer = game.randomIntegerFrom(
+            enemy.minWaveTiming,
+            enemy.maxWaveTiming);
         }
       }
-    }
 
+      function launchNewWaves(enemy) {
+        if (enemyReleaseCounter % enemy.waveTimer === 0) {
+          game.launchEnemies(
+            game.randomIntegerFrom(
+              enemy.minWaveNumber,
+              enemy.maxWaveNumber),
+            enemy);
+        }
+      }
+    });
+
+    checkCollisions();
+    checkForGameOver();
+
+    // Ship movement logic
     player.body.acceleration.x = 0;
 
     if (cursors.left.isDown) {
@@ -238,12 +237,40 @@ Game.prototype = {
     }
 
     // Ship banking logic
-    // TODO: put this in the ship object
     var bank = player.body.velocity.x / ship.maxSpeed;
     player.scale.x = 1 - Math.abs(bank) / 4;
     player.angle = bank * 5;
 
     shipTrail.x = player.x;
+
+    function checkForGameOver() {
+      if (!player.alive && gameOver.visible == false) {
+        gameOver.visible = true;
+        gameOver.alpha = 0;
+        var fadeInGameOver = this.add.tween(gameOver);
+        fadeInGameOver.to({
+          alpha: 1
+        }, 1000, Phaser.Easing.Quintic.Out);
+        fadeInGameOver.onComplete.add(setResetHandlers);
+        fadeInGameOver.start();
+
+        function setResetHandlers() {
+          var tapRestart = game.input.onTap.addOnce(_restart, game);
+          var spaceRestart = fireButton.onDown.addOnce(_restart, game);
+
+          function _restart() {
+            tapRestart.detach();
+            spaceRestart.detach();
+            game.restart();
+          }
+        }
+      }
+    }
+
+    function checkCollisions() {
+      game.physics.arcade.overlap(player, droneScouts, shipCollide, null, game);
+      game.physics.arcade.overlap(bullets, droneScouts, hitEnemy, null, game);
+    }
 
     function fireBullet() {
       var bullet = bullets.getFirstExists(false);
@@ -302,16 +329,14 @@ Game.prototype = {
     }
 
     function launchEnemy() {
-      var enemySpeed = 300;
       var enemyLocation = game.randomIntegerFrom(50, 750);
-
       var enemy = enemyGroup.getFirstExists(false);
       if (enemy) {
         console.log(enemy);
         enemy.reset(enemyLocation, -20);
-        enemy.body.velocity.x = game.randomIntegerFrom(-300, 300);
-        enemy.body.velocity.y = enemySpeed;
-        enemy.body.drag.x = 100;
+        enemy.body.velocity.x = game.randomIntegerFrom(-enemy.speed, enemy.speed);
+        enemy.body.velocity.y = enemy.speed;
+        enemy.body.drag.x = enemy.drag;
       }
     }
   },
