@@ -77,9 +77,11 @@ Game.prototype = {
     // Creating enemies groups
     droneScouts = game.add.group();
     droneFighters = game.add.group();
+    droneBombers = game.add.group();
     enemies = [
       droneScouts,
-      droneFighters
+      droneFighters,
+      droneBombers
     ];
 
     // Default enemy configuration
@@ -88,7 +90,7 @@ Game.prototype = {
     });
 
     // Enemies -- Drone Scouts
-    droneScouts.createMultiple(7, 'droneScout');
+    droneScouts.createMultiple(15, 'droneScout');
     droneScouts.minWaveTiming = 140;
     droneScouts.maxWaveTiming = 240;
     droneScouts.minWaveNumber = 3;
@@ -101,9 +103,8 @@ Game.prototype = {
     });
 
     // Enemies - Drone Fighters
-    droneFighters.createMultiple(5, 'droneFighter');
-    droneFighters.enableBody = true;
-    droneFighters.minWaveTiming = 195;
+    droneFighters.createMultiple(10, 'droneFighter');
+    droneFighters.minWaveTiming = 190;
     droneFighters.maxWaveTiming = 350;
     droneFighters.minWaveNumber = 1;
     droneFighters.maxWaveNumber = 5;
@@ -112,6 +113,19 @@ Game.prototype = {
       enemy.level = 3;
       enemy.speed = game.randomIntegerFrom(100, 400);
       enemy.drag = 50;
+    });
+
+    // Enemies = Drone Bombers
+    droneBombers.createMultiple(5, 'droneBomber');
+    droneBombers.minWaveTiming = 300;
+    droneBombers.maxWaveTiming = 450;
+    droneBombers.minWaveNumber = 1;
+    droneBombers.maxWaveNumber = 2;
+    droneBombers.forEach(function(enemy) {
+      enemy.damageAmount = 50;
+      enemy.level = 4;
+      enemy.speed = 100;
+      enemy.drag =  5;
     });
 
     function configureEnemies(group) {
@@ -259,7 +273,7 @@ Game.prototype = {
       if (!player.alive && gameOver.visible == false) {
         gameOver.visible = true;
         gameOver.alpha = 0;
-        var fadeInGameOver = this.add.tween(gameOver);
+        var fadeInGameOver = game.add.tween(gameOver);
         fadeInGameOver.to({
           alpha: 1
         }, 1000, Phaser.Easing.Quintic.Out);
