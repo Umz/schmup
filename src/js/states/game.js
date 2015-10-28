@@ -8,6 +8,8 @@ var score = 0;
 var scoreText;
 
 var droneScouts;
+var droneFighters;
+var droneBombers;
 var enemyReleaseCounter = 0;
 
 var starfield;
