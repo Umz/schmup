@@ -7,6 +7,8 @@ var gameOver;
 var score = 0;
 var scoreText;
 
+var enemies;
+var enemyOptions;
 var droneScouts;
 var droneFighters;
 var droneBombers;
@@ -72,39 +74,62 @@ Game.prototype = {
     cursors = game.input.keyboard.createCursorKeys();
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-    // Enemies -- Drones
+    // Creating enemies groups
     droneScouts = game.add.group();
-    droneScouts.enableBody = true;
-    droneScouts.physicsBodyType = Phaser.Physics.ARCADE;
-    droneScouts.createMultiple(5, 'droneScout');
-    droneScouts.setAll('anchor.x', 0.5);
-    droneScouts.setAll('anchor.y', 0.5);
-    droneScouts.setAll('angle', 180);
-    droneScouts.setAll('outOfBoundsKill', true);
-    droneScouts.setAll('checkWorldBounds', true);
-    droneScouts.forEach(function(enemy) {
-      enemy.damageAmount = 20;
-      enemy.level = 2;
+    droneFighters = game.add.group();
+    enemies = [
+      droneScouts,
+      droneFighters
+    ];
+
+    // Default enemy configuration
+    enemies.forEach(function (group) {
+      configureEnemies(group);
     });
 
-    // Broken enemy trail emitter code
+    // Enemies -- Drone Scouts
+    droneScouts.createMultiple(7, 'droneScout');
+    droneScouts.forEach(function(enemy) {
+      enemy.damageAmount = 10;
+      enemy.level = 2;
+      enemy.minWaveTiming = 140;
+      enemy.maxWaveTiming = 240;
+      enemy.minWaveNumber = 3;
+      enemy.maxWaveNumber = 7;
+    });
 
-    // droneScouts.forEach(function(enemy) {
-    //   addEnemyEmitterTrail(enemy);
-    //   enemy.events.onKilled.add(function() {
-    //     enemy.trail.kill();
-    //   });
-    // });
-    // function addEnemyEmitterTrail(enemy) {
-    //     var enemyTrail = droneScouts.game.add.emitter(enemy.x, enemy.y - 25, 100);
-    //     enemyTrail.width = 10;
-    //     enemyTrail.makeParticles('enemyTrail', [1, 2, 3, 4, 5]);
-    //     enemyTrail.setXSpeed(20, -20);
-    //     enemyTrail.setRotation(50, -50);
-    //     enemyTrail.setAlpha(0.4, 0, 800);
-    //     enemyTrail.setScale(0.01, 0.1, 0.01, 0.1, 1000, Phaser.Easing.Quintic.Out);
-    //     enemy.trail = enemyTrail;
-    //   }
+    // Enemies - Drone Fighters
+    droneFighters.createMultiple(5, 'droneFighter');
+    droneFighters.enableBody = true;
+    droneFighters.forEach(function(enemy) {
+      enemy.damageAmount = 25;
+      enemy.level = 3;
+      enemy.minWaveTiming = 195;
+      enemy.maxWaveTiming = 350;
+      enemy.minWaveNumber = 1;
+      enemy.maxWaveNumber = 5;
+    });
+
+    function configureEnemies(group) {
+      console.log(group);
+      group.physicsBodyType = Phaser.Physics.ARCADE;
+      group.enableBody = true;
+      group.setAll('anchor.x', 0.5);
+      group.setAll('anchor.y', 0.5);
+      group.setAll('angle', 180);
+      group.setAll('outOfBoundsKill', true);
+      group.setAll('checkWorldBounds', true);
+    }
+
+
+    // Unused as of right now.
+    function setEnemyAttributes(enemy, options) {
+      options = options || {};
+      game.physics.enable(enemy, Phaser.Physics.ARCADE);
+      for (attr in options) {
+        enemy[attr] = options[attr];
+      }
+    }
 
     game.launchEnemies(game.randomIntegerFrom(3, 5), droneScouts);
 
@@ -131,7 +156,7 @@ Game.prototype = {
 
     //Ship HUD and stats
     player.health = 100;
-    playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health +'%', 20);
+    playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health + '%', 20);
     playerShields.render = function() {
       playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
     };
@@ -181,6 +206,7 @@ Game.prototype = {
       function setResetHandlers() {
         var tapRestart = game.input.onTap.addOnce(_restart, game);
         var spaceRestart = fireButton.onDown.addOnce(_restart, game);
+
         function _restart() {
           tapRestart.detach();
           spaceRestart.detach();
@@ -276,13 +302,12 @@ Game.prototype = {
     }
 
     function launchEnemy() {
-      var minSpacing = 300;
-      var maxSpacing = 3000;
       var enemySpeed = 300;
       var enemyLocation = game.randomIntegerFrom(50, 750);
 
       var enemy = enemyGroup.getFirstExists(false);
       if (enemy) {
+        console.log(enemy);
         enemy.reset(enemyLocation, -20);
         enemy.body.velocity.x = game.randomIntegerFrom(-300, 300);
         enemy.body.velocity.y = enemySpeed;
@@ -291,7 +316,7 @@ Game.prototype = {
     }
   },
 
-  restart: function () {
+  restart: function() {
     droneScouts.callAll('kill');
     enemyReleaseCounter = 0;
     player.revive();
