@@ -110,8 +110,8 @@ Game.prototype = {
     droneFighters.forEach(function(enemy) {
       enemy.damageAmount = 25;
       enemy.level = 3;
-      enemy.speed = 250;
-      enemy.drag = 75;
+      enemy.speed = game.randomIntegerFrom(100, 400);
+      enemy.drag = 50;
     });
 
     function configureEnemies(group) {
@@ -217,6 +217,7 @@ Game.prototype = {
               enemy.maxWaveNumber),
             enemy);
           console.log("Wave launched?!");
+          enemy.waveTimer = null;
         }
       }
     });
