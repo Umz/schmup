@@ -18,7 +18,7 @@ var starfield;
 
 var explosions;
 var bullets;
-var firingSpeed = 3;
+var firingSpeed = 10; // higher = slower
 var bulletCounter = firingSpeed;
 
 var cursors;
@@ -89,29 +89,29 @@ Game.prototype = {
 
     // Enemies -- Drone Scouts
     droneScouts.createMultiple(7, 'droneScout');
+    droneScouts.minWaveTiming = 140;
+    droneScouts.maxWaveTiming = 240;
+    droneScouts.minWaveNumber = 3;
+    droneScouts.maxWaveNumber = 7;
     droneScouts.forEach(function(enemy) {
       enemy.damageAmount = 10;
       enemy.level = 2;
       enemy.speed = 300;
       enemy.drag = 100;
-      enemy.minWaveTiming = 140;
-      enemy.maxWaveTiming = 240;
-      enemy.minWaveNumber = 3;
-      enemy.maxWaveNumber = 7;
     });
 
     // Enemies - Drone Fighters
     droneFighters.createMultiple(5, 'droneFighter');
     droneFighters.enableBody = true;
+    droneFighters.minWaveTiming = 195;
+    droneFighters.maxWaveTiming = 350;
+    droneFighters.minWaveNumber = 1;
+    droneFighters.maxWaveNumber = 5;
     droneFighters.forEach(function(enemy) {
       enemy.damageAmount = 25;
       enemy.level = 3;
       enemy.speed = 250;
       enemy.drag = 75;
-      enemy.minWaveTiming = 195;
-      enemy.maxWaveTiming = 350;
-      enemy.minWaveNumber = 1;
-      enemy.maxWaveNumber = 5;
     });
 
     function configureEnemies(group) {
@@ -141,7 +141,7 @@ Game.prototype = {
     bullets = game.add.group();
     bullets.enableBody = true;
     bullets.physicsBodyType = Phaser.Physics.ARCADE;
-    bullets.createMultiple(30, 'bullet');
+    bullets.createMultiple(15, 'bullet');
     bullets.setAll('anchor.x', 0.5);
     bullets.setAll('anchor.y', 1);
     bullets.setAll('outOfBoundsKill', true);
@@ -192,10 +192,20 @@ Game.prototype = {
       launchNewWaves(enemy);
 
       function checkWaveTimer(enemy) {
+        console.log("wave timer", enemy.waveTimer);
+        console.log(enemy.minWaveTiming);
+        console.log(enemy.maxWaveTiming);
         if (!enemy.waveTimer) {
-          enemy.waveTimer = game.randomIntegerFrom(
-            enemy.minWaveTiming,
-            enemy.maxWaveTiming);
+          enemy.waveTimer =
+            roundToNearestTen(
+              game.randomIntegerFrom(
+                enemy.minWaveTiming,
+                enemy.maxWaveTiming
+              ));
+        }
+
+        function roundToNearestTen(num) {
+          return Math.ceil(num / 10) * 10;
         }
       }
 
@@ -206,6 +216,7 @@ Game.prototype = {
               enemy.minWaveNumber,
               enemy.maxWaveNumber),
             enemy);
+          console.log("Wave launched?!");
         }
       }
     });
@@ -268,8 +279,10 @@ Game.prototype = {
     }
 
     function checkCollisions() {
-      game.physics.arcade.overlap(player, droneScouts, shipCollide, null, game);
-      game.physics.arcade.overlap(bullets, droneScouts, hitEnemy, null, game);
+      enemies.forEach(function(group) {
+        game.physics.arcade.overlap(player, group, shipCollide, null, game);
+        game.physics.arcade.overlap(bullets, group, hitEnemy, null, game);
+      });
     }
 
     function fireBullet() {
