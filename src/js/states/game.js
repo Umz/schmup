@@ -104,7 +104,6 @@ Game.prototype = {
           enemy.bullets--;
           projectile.reset(enemy.x + enemy.width / 2,
             enemy.y + enemy.height * 0.75);
-          console.log(projectile);
           projectile.damageAmount = enemy.bulletDamageAmount;
           projectile.body.velocity.y = enemy.bulletSpeed;
           projectile.body.velocity.x = 0;
@@ -126,7 +125,6 @@ Game.prototype = {
       };
 
       droneScouts.init = function() {
-        console.log(this);
         this.createMultiple(50, 'droneScout');
         this.minWaveTiming = 140;
         this.maxWaveTiming = 380;
@@ -330,7 +328,6 @@ Game.prototype = {
               enemy.minWaveNumber,
               enemy.maxWaveNumber),
             enemy);
-          console.log("Wave launched?!");
           enemy.waveTimer = null;
         }
       }
@@ -465,7 +462,6 @@ Game.prototype = {
     }
 
     function launchEnemy() {
-      console.log("Launching enemy...");
       var enemy = enemyGroup.getFirstExists(false);
       if (enemy) {
         var enemyLocation = game.randomIntegerFrom(
