@@ -56,6 +56,29 @@ Game.prototype = {
     starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
 
     createPlayerShip();
+    initControls();
+    initEnemies();
+    initWeapons();
+    initEffects();
+
+    playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health + '%', 20);
+    playerShields.render = function() {
+      playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
+    };
+    playerShields.render();
+
+    // Score
+    scoreText = game.add.bitmapText(10, 10, 'spacefont', '', 20);
+    scoreText.render = function() {
+      scoreText.text = 'Score: ' + score;
+    };
+    scoreText.render();
+
+    // Messages
+    gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
+    gameOver.x = gameOver.x - gameOver.textWidth / 2;
+    gameOver.y = gameOver.y - gameOver.textHeight / 3;
+    gameOver.visible = false;
 
     function createPlayerShip() {
       player = game.add.sprite(400, 500, 'ship');
@@ -63,88 +86,102 @@ Game.prototype = {
       player.events.onKilled.add(function() {
         shipTrail.kill();
       });
-
       player.body
         .maxVelocity.setTo(ship.maxSpeed, ship.maxSpeed);
       player.body
         .drag.setTo(ship.drag, ship.drag);
       player.anchor.setTo(0.5, 0.5);
-
+      player.health = 100;
       game.createShipTrail(player, 'plasma');
     }
 
-    // Set controls
-    cursors = game.input.keyboard.createCursorKeys();
-    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    function initControls() {
+      cursors = game.input.keyboard.createCursorKeys();
+      fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    }
 
-    // Creating enemies groups
-    droneScouts = game.add.group();
-    droneFighters = game.add.group();
-    droneBombers = game.add.group();
-    enemies = [
-      droneScouts,
-      droneFighters,
-      droneBombers
-    ];
+    function initEnemies() {
 
-    // Default enemy configuration
-    enemies.forEach(function(group) {
-      configureEnemies(group);
-    });
+      droneScouts = game.add.group();
+      droneFighters = game.add.group();
+      droneBombers = game.add.group();
+      enemies = [
+        droneScouts,
+        droneFighters,
+        droneBombers
+      ];
 
-    // Enemies -- Drone Scouts
-    droneScouts.createMultiple(50, 'droneScout');
-    droneScouts.minWaveTiming = 140;
-    droneScouts.maxWaveTiming = 380;
-    droneScouts.minWaveNumber = 3;
-    droneScouts.maxWaveNumber = 5;
-    droneScouts.forEach(function(enemy) {
-      enemy.damageAmount = 10;
-      enemy.level = 2;
-      enemy.speed = game.randomIntegerFrom(250, 450);
-      enemy.drift = 30;
-      enemy.drag = game.randomIntegerFrom(100, 200);
-      enemy.minX = 50;
-      enemy.maxX = 750;
-      enemy.scale.x = size.xSmall;
-      enemy.scale.y = size.xSmall;
-    });
+      droneScouts.init = function() {
+        console.log(this);
+        this.createMultiple(50, 'droneScout');
+        this.minWaveTiming = 140;
+        this.maxWaveTiming = 380;
+        this.minWaveNumber = 3;
+        this.maxWaveNumber = 5;
+        this.forEach(function(enemy) {
+          enemy.damageAmount = 10;
+          enemy.level = 2;
+          enemy.speed = game.randomIntegerFrom(250, 450);
+          enemy.drift = 30;
+          enemy.drag = game.randomIntegerFrom(100, 200);
+          enemy.minX = 50;
+          enemy.maxX = 750;
+          enemy.scale.x = size.xSmall;
+          enemy.scale.y = size.xSmall;
+        });
+      };
 
-    // Enemies - Drone Fighters
-    droneFighters.createMultiple(10, 'droneFighter');
-    droneFighters.minWaveTiming = 190;
-    droneFighters.maxWaveTiming = 500;
-    droneFighters.minWaveNumber = 2;
-    droneFighters.maxWaveNumber = 4;
-    droneFighters.forEach(function(enemy) {
-      enemy.damageAmount = 25;
-      enemy.level = 3;
-      enemy.speed = game.randomIntegerFrom(100, 400);
-      enemy.drift = game.randomIntegerFrom(200, 300);
-      enemy.drag = 50;
-      enemy.minX = 100;
-      enemy.maxX = 700;
-      enemy.scale.x = size.medium;
-      enemy.scale.y = size.medium;
-    });
+      droneFighters.init = function() {
+        console.log(this);
 
-    // Enemies = Drone Bombers
-    droneBombers.createMultiple(5, 'droneBomber');
-    droneBombers.minWaveTiming = 500;
-    droneBombers.maxWaveTiming = 600;
-    droneBombers.minWaveNumber = 1;
-    droneBombers.maxWaveNumber = 2;
-    droneBombers.forEach(function(enemy) {
-      enemy.damageAmount = 50;
-      enemy.level = 4;
-      enemy.speed = 100;
-      enemy.drift = 5;
-      enemy.drag = 5;
-      enemy.minX = 250;
-      enemy.maxX = 650;
-      enemy.scale.x = size.large;
-      enemy.scale.y = size.large;
-    });
+        this.createMultiple(10, 'droneFighter');
+        this.minWaveTiming = 190;
+        this.maxWaveTiming = 500;
+        this.minWaveNumber = 2;
+        this.maxWaveNumber = 4;
+        this.forEach(function(enemy) {
+          enemy.damageAmount = 25;
+          enemy.level = 3;
+          enemy.speed = game.randomIntegerFrom(100, 400);
+          enemy.drift = game.randomIntegerFrom(200, 300);
+          enemy.drag = 50;
+          enemy.minX = 100;
+          enemy.maxX = 700;
+          enemy.scale.x = size.medium;
+          enemy.scale.y = size.medium;
+        });
+      };
+
+      droneBombers.init = function() {
+        console.log(this);
+
+        this.createMultiple(5, 'droneBomber');
+        this.minWaveTiming = 500;
+        this.maxWaveTiming = 600;
+        this.minWaveNumber = 1;
+        this.maxWaveNumber = 2;
+        this.forEach(function(enemy) {
+          enemy.damageAmount = 50;
+          enemy.level = 4;
+          enemy.speed = 100;
+          enemy.drift = 5;
+          enemy.drag = 5;
+          enemy.minX = 250;
+          enemy.maxX = 650;
+          enemy.scale.x = size.large;
+          enemy.scale.y = size.large;
+        });
+      };
+
+      
+        enemies.forEach(function(group) {
+          configureEnemies(group);
+          group.init();
+        });
+
+      game.launchEnemies(game.randomIntegerFrom(3, 5), droneScouts);
+
+    }
 
     function configureEnemies(group) {
       group.physicsBodyType = Phaser.Physics.ARCADE;
@@ -166,49 +203,28 @@ Game.prototype = {
       }
     }
 
-    game.launchEnemies(game.randomIntegerFrom(3, 5), droneScouts);
+    function initWeapons() {
+      bullets = game.add.group();
+      bullets.enableBody = true;
+      bullets.physicsBodyType = Phaser.Physics.ARCADE;
+      bullets.createMultiple(15, 'bullet');
+      bullets.setAll('anchor.x', 0.5);
+      bullets.setAll('anchor.y', 1);
+      bullets.setAll('outOfBoundsKill', true);
+      bullets.setAll('checkWorldBounds', true);
+    }
 
-    // The bullet group
-    bullets = game.add.group();
-    bullets.enableBody = true;
-    bullets.physicsBodyType = Phaser.Physics.ARCADE;
-    bullets.createMultiple(15, 'bullet');
-    bullets.setAll('anchor.x', 0.5);
-    bullets.setAll('anchor.y', 1);
-    bullets.setAll('outOfBoundsKill', true);
-    bullets.setAll('checkWorldBounds', true);
-
-    // Explosion group
-    explosions = game.add.group();
-    explosions.enableBody = true;
-    explosions.physicsBodyType = Phaser.Physics.ARCADE;
-    explosions.createMultiple(30, 'explosion');
-    explosions.setAll('anchor.x', 0.5);
-    explosions.setAll('anchor.y', 0.5);
-    explosions.forEach(function(explosion) {
-      explosion.animations.add('explosion');
-    });
-
-    //Ship HUD and stats
-    player.health = 100;
-    playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health + '%', 20);
-    playerShields.render = function() {
-      playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
-    };
-    playerShields.render();
-
-    // Score
-    scoreText = game.add.bitmapText(10, 10, 'spacefont', '', 20);
-    scoreText.render = function() {
-      scoreText.text = 'Score: ' + score;
-    };
-    scoreText.render();
-
-    // Messages
-    gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
-    gameOver.x = gameOver.x - gameOver.textWidth / 2;
-    gameOver.y = gameOver.y - gameOver.textHeight / 3;
-    gameOver.visible = false;
+    function initEffects() {
+      explosions = game.add.group();
+      explosions.enableBody = true;
+      explosions.physicsBodyType = Phaser.Physics.ARCADE;
+      explosions.createMultiple(30, 'explosion');
+      explosions.setAll('anchor.x', 0.5);
+      explosions.setAll('anchor.y', 0.5);
+      explosions.forEach(function(explosion) {
+        explosion.animations.add('explosion');
+      });
+    }
 
   },
 
@@ -371,6 +387,7 @@ Game.prototype = {
     }
 
     function launchEnemy() {
+      console.log("Launching enemy...");
       var enemy = enemyGroup.getFirstExists(false);
       if (enemy) {
         var enemyLocation = game.randomIntegerFrom(
@@ -384,16 +401,16 @@ Game.prototype = {
   },
 
   createShipTrail: function(ship, particleName) {
-        shipTrail = this.add.emitter(ship.x, ship.y + 40, 400);
-        shipTrail.width = 10;
-        shipTrail.makeParticles(particleName);
-        shipTrail.setXSpeed(30, -30);
-        shipTrail.setYSpeed(200, 180);
-        shipTrail.setRotation(50, -50);
-        shipTrail.setAlpha(1, 0.01, 800);
-        shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
-        shipTrail.start(false, 5000, 10);
-      },
+    shipTrail = this.add.emitter(ship.x, ship.y + 40, 400);
+    shipTrail.width = 10;
+    shipTrail.makeParticles(particleName);
+    shipTrail.setXSpeed(30, -30);
+    shipTrail.setYSpeed(200, 180);
+    shipTrail.setRotation(50, -50);
+    shipTrail.setAlpha(1, 0.01, 800);
+    shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
+    shipTrail.start(false, 5000, 10);
+  },
 
   restart: function() {
     droneScouts.callAll('kill');
