@@ -204,14 +204,12 @@ Game.prototype = {
       playerShields.render();
       scoreText.render();
 
-
       function createShieldMessage() {
         playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health + '%', 20);
         playerShields.render = function() {
           playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
         };
       }
-
 
       function createScoreMessage() {
         scoreText = game.add.bitmapText(10, 10, 'spacefont', '', 20);
@@ -220,7 +218,6 @@ Game.prototype = {
         };
       }
 
-
       function createGameOverMessage() {
         gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
         gameOver.x = gameOver.x - gameOver.textWidth / 2;
@@ -228,7 +225,6 @@ Game.prototype = {
         gameOver.visible = false;
       }
     }
-
   },
 
   update: function() {
