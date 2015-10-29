@@ -75,6 +75,7 @@ Game.prototype = {
         .drag.setTo(ship.drag, ship.drag);
       player.anchor.setTo(0.5, 0.5);
       player.health = 100;
+      player.size = size.large;
       game.createShipTrail(player, 'plasma');
     }
 
@@ -115,8 +116,6 @@ Game.prototype = {
       };
 
       droneFighters.init = function() {
-        console.log(this);
-
         this.createMultiple(10, 'droneFighter');
         this.minWaveTiming = 190;
         this.maxWaveTiming = 500;
@@ -136,8 +135,6 @@ Game.prototype = {
       };
 
       droneBombers.init = function() {
-        console.log(this);
-
         this.createMultiple(5, 'droneBomber');
         this.minWaveTiming = 500;
         this.maxWaveTiming = 600;
@@ -163,7 +160,6 @@ Game.prototype = {
       });
 
       game.launchEnemies(game.randomIntegerFrom(3, 5), droneScouts);
-
     }
 
     function configureEnemies(group) {
@@ -275,36 +271,29 @@ Game.prototype = {
 
     checkCollisions();
     checkForGameOver();
+    calculatePlayerMovement();
 
-    // Ship movement logic
-    player.body.acceleration.x = 0;
+    function calculatePlayerMovement() {
 
-    if (cursors.left.isDown) {
-      player.body.acceleration.x = -ship.acceleration;
-    } else if (cursors.right.isDown) {
-      player.body.acceleration.x = ship.acceleration;
-    }
-
-    if (player.alive && fireButton.isDown) {
-      fireBullet();
-    }
-
-    // TODO: Refactor to be DRY
-    if (player.x > 750) {
-      player.x = 750;
       player.body.acceleration.x = 0;
-    }
-    if (player.x < 50) {
-      player.x = 50;
-      player.body.acceleration.x = 0;
-    }
+      game.checkForBounds(50, 750, player);
+      checkForPlayerInput();
+      shipTrail.x = player.x;
+      game.applyBankingToShip(player);
 
-    // Ship banking logic
-    var bank = player.body.velocity.x / ship.maxSpeed;
-    player.scale.x = 1 - Math.abs(bank) / 4;
-    player.angle = bank * 5;
 
-    shipTrail.x = player.x;
+      function checkForPlayerInput() {
+        if (cursors.left.isDown) {
+          player.body.acceleration.x = -ship.acceleration;
+        } else if (cursors.right.isDown) {
+          player.body.acceleration.x = ship.acceleration;
+        }
+
+        if (player.alive && fireButton.isDown) {
+          fireBullet();
+        }
+      }
+    }
 
     function checkForGameOver() {
       if (!player.alive && gameOver.visible == false) {
@@ -408,7 +397,7 @@ Game.prototype = {
   },
 
   // Unused as of right now.
-  // Could be used for powerups or abilities that change enemy attributes 
+  // Could be used for powerups or abilities that change enemy attributes
   // (speed could be halved for a "Slow Time" powerup, for example)
   setEnemyAttributes: function(enemy, options) {
     options = options || {};
@@ -416,6 +405,24 @@ Game.prototype = {
     for (attr in options) {
       enemy[attr] = options[attr];
     }
+  },
+
+  checkForBounds: function(min, max, entity) {
+    if (entity.x > max) {
+      entity.x = max;
+      entity.body.acceleration.x = -50;
+    }
+    if (entity.x < min) {
+      entity.x = min;
+      entity.body.acceleration.x = 50;
+    }
+  },
+
+  // TODO - Tack stuff like maxSpeed to player object
+  applyBankingToShip: function(entity) {
+    var bank = entity.body.velocity.x / ship.maxSpeed;
+    entity.scale.x = entity.size - Math.abs(bank) / 4;
+    entity.angle = bank * 5;
   },
 
   createShipTrail: function(ship, particleName) {
