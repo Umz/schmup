@@ -18,7 +18,7 @@ var starfield;
 
 var explosions;
 var bullets;
-var firingSpeed = 15; // higher = slower
+var firingSpeed = 25; // higher = slower
 var bulletCounter = firingSpeed;
 
 var cursors;
@@ -142,8 +142,8 @@ Game.prototype = {
         this.forEach(function(enemy) {
           enemy.damageAmount = 25;
           enemy.level = 3;
-          enemy.speed = game.randomIntegerFrom(100, 400);
-          enemy.drift = game.randomIntegerFrom(200, 300);
+          enemy.speed = game.randomIntegerFrom(250, 400);
+          enemy.drift = game.randomIntegerFrom(200, 450);
           enemy.drag = 50;
           enemy.minX = 100;
           enemy.maxX = 700;
