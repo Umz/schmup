@@ -102,7 +102,7 @@ Game.prototype = {
         if (canFire() && doesFire()) {
           enemy.lastShot = enemyReleaseCounter;
           enemy.bullets--;
-          projectile.reset(enemy.x + enemy.width / 2, 
+          projectile.reset(enemy.x + enemy.width / 2,
             enemy.y + enemy.height * 0.75);
           console.log(projectile);
           projectile.damageAmount = enemy.bulletDamageAmount;
@@ -225,12 +225,6 @@ Game.prototype = {
       bullets.setAll('outOfBoundsKill', true);
       bullets.setAll('checkWorldBounds', true);
 
-      // enemy weapons
-      enemyWeapons = [
-        enemyLasers,
-        enemyBombs
-      ];
-
       enemyLasers = game.add.group();
       enemyLasers.enableBody = true;
       enemyLasers.physicsBodyType = Phaser.Physics.ARCADE;
@@ -252,6 +246,12 @@ Game.prototype = {
       enemyBombs.setAll('anchor.y', 0.5);
       enemyBombs.setAll('outOfBoundsKill', true);
       enemyBombs.setAll('checkWorldBounds', true);
+
+      // enemy weapons
+      enemyWeapons = [
+        enemyLasers,
+        enemyBombs
+      ];
     }
 
     function initEffects() {
@@ -433,7 +433,7 @@ Game.prototype = {
       goBoom(player);
       bullet.kill();
       player.damage(bullet.damageAmount);
-      shields.render();
+      playerShields.render();
     }
 
     function hitEnemy(bullet, enemy) {
