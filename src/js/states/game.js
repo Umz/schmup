@@ -18,7 +18,7 @@ var starfield;
 
 var explosions;
 var bullets;
-var firingSpeed = 10; // higher = slower
+var firingSpeed = 15; // higher = slower
 var bulletCounter = firingSpeed;
 
 var cursors;
@@ -158,8 +158,8 @@ Game.prototype = {
         this.createMultiple(5, 'droneBomber');
         this.minWaveTiming = 500;
         this.maxWaveTiming = 600;
-        this.minWaveNumber = 1;
-        this.maxWaveNumber = 2;
+        this.minWaveNumber = 0;
+        this.maxWaveNumber = 1;
         this.forEach(function(enemy) {
           enemy.damageAmount = 50;
           enemy.level = 4;
@@ -173,7 +173,7 @@ Game.prototype = {
         });
       };
 
-      
+
         enemies.forEach(function(group) {
           configureEnemies(group);
           group.init();
