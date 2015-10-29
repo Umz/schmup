@@ -21,6 +21,8 @@ Preloader.prototype = {
     this.load.image('plasma', 'assets/bluePlasma.png');
     this.load.image('laser', 'assets/blueLaser.png');
     this.load.image('bullet', 'assets/blueBullet.png');
+    this.load.image('enemyLaser', 'assets/redLaser.png');
+    this.load.image('enemyBomb', 'assets/redBomb.png');
     this.load.image('droneScout', 'assets/droneScout.png');
     this.load.image('droneFighter', 'assets/droneFighter.png');
     this.load.image('droneBomber', 'assets/droneBomber.png');

@@ -21,6 +21,7 @@ var explosions;
 var bullets;
 var firingSpeed = 25; // higher = slower
 var bulletCounter = firingSpeed;
+var enemyWeapons, enemyLasers, enemyBombs;
 
 var cursors;
 var fireButton;
@@ -58,8 +59,8 @@ Game.prototype = {
 
     initPlayerShip();
     initControls();
-    initEnemies();
     initWeapons();
+    initEnemies();
     initEffects();
     initMessages();
 
@@ -94,6 +95,35 @@ Game.prototype = {
         droneFighters,
         droneBombers
       ];
+
+      var enemyFiring = function() {
+        var enemy = this;
+        var projectile = enemy.weapon.getFirstExists(false);
+        if (canFire() && doesFire()) {
+          enemy.lastShot = enemyReleaseCounter;
+          enemy.bullets--;
+          projectile.reset(enemy.x + enemy.width / 2, 
+            enemy.y + enemy.height * 0.75);
+          console.log(projectile);
+          projectile.damageAmount = enemy.bulletDamageAmount;
+          projectile.body.velocity.y = enemy.bulletSpeed;
+          projectile.body.velocity.x = 0;
+          projectile.body.drag = 0;
+          projectile.body.angle = 90;
+        }
+
+        function canFire() {
+          return projectile &&
+            enemy.alive &&
+            enemy.bullets &&
+            enemyReleaseCounter > enemy.firingSpeed + enemy.lastShot;
+        }
+
+        function doesFire() {
+          return game.randomIntegerFrom(1, 100) >
+            80;
+        }
+      };
 
       droneScouts.init = function() {
         console.log(this);
@@ -131,6 +161,13 @@ Game.prototype = {
           enemy.maxX = 700;
           enemy.scale.x = size.medium;
           enemy.scale.y = size.medium;
+          enemy.weapon = enemyLasers;
+          enemy.bullets = 4;
+          enemy.bulletDamageAmount = 10;
+          enemy.bulletSpeed = 500;
+          enemy.firingSpeed = 20;
+          enemy.lastShot = 0;
+          enemy.update = enemyFiring;
         });
       };
 
@@ -150,9 +187,15 @@ Game.prototype = {
           enemy.maxX = 650;
           enemy.scale.x = size.large;
           enemy.scale.y = size.large;
+          enemy.weapon = enemyBombs;
+          enemy.bullets = 2;
+          enemy.bulletDamageAmount = 40;
+          enemy.bulletSpeed = 250;
+          enemy.firingSpeed = 40;
+          enemy.lastShot = 0;
+          enemy.update = enemyFiring;
         });
       };
-
 
       enemies.forEach(function(group) {
         configureEnemies(group);
@@ -181,6 +224,34 @@ Game.prototype = {
       bullets.setAll('anchor.y', 1);
       bullets.setAll('outOfBoundsKill', true);
       bullets.setAll('checkWorldBounds', true);
+
+      // enemy weapons
+      enemyWeapons = [
+        enemyLasers,
+        enemyBombs
+      ];
+
+      enemyLasers = game.add.group();
+      enemyLasers.enableBody = true;
+      enemyLasers.physicsBodyType = Phaser.Physics.ARCADE;
+      enemyLasers.createMultiple(20, 'enemyLaser');
+      enemyLasers.setAll('scale.x', 0.6);
+      enemyLasers.setAll('scale.y', 0.6);
+      enemyLasers.setAll('anchor.x', 0.5);
+      enemyLasers.setAll('anchor.y', 0.5);
+      enemyLasers.setAll('outOfBoundsKill', true);
+      enemyLasers.setAll('checkWorldBounds', true);
+
+      enemyBombs = game.add.group();
+      enemyBombs.enableBody = true;
+      enemyBombs.physicsBodyType = Phaser.Physics.ARCADE;
+      enemyBombs.createMultiple(10, 'enemyBomb');
+      enemyBombs.setAll('scale.x', 1);
+      enemyBombs.setAll('scale.y', 1);
+      enemyBombs.setAll('anchor.x', 0.5);
+      enemyBombs.setAll('anchor.y', 0.5);
+      enemyBombs.setAll('outOfBoundsKill', true);
+      enemyBombs.setAll('checkWorldBounds', true);
     }
 
     function initEffects() {
@@ -320,6 +391,10 @@ Game.prototype = {
         game.physics.arcade.overlap(player, group, shipCollide, null, game);
         game.physics.arcade.overlap(bullets, group, hitEnemy, null, game);
       });
+
+      enemyWeapons.forEach(function(projectiles) {
+        game.physics.arcade.overlap(projectiles, player, enemyHitsPlayer, null, this);
+      });
     }
 
     function fireBullet() {
@@ -354,15 +429,26 @@ Game.prototype = {
       addPointsForKilling(enemy);
     }
 
+    function enemyHitsPlayer(player, bullet) {
+      goBoom(player);
+      bullet.kill();
+      player.damage(bullet.damageAmount);
+      shields.render();
+    }
+
     function hitEnemy(bullet, enemy) {
-      var explosion = explosions.getFirstExists(false);
-      explosion.reset(enemy.body.x + enemy.body.halfWidth, enemy.body.y + enemy.body.halfHeight);
-      explosion.body.velocity.y = enemy.body.velocity.y;
-      explosion.alpha = 0.7;
-      explosion.play('explosion', 30, false, true);
+      goBoom(enemy);
       enemy.kill();
       bullet.kill();
       addPointsForKilling(enemy);
+    }
+
+    function goBoom(entity) {
+      var explosion = explosions.getFirstExists(false);
+      explosion.reset(entity.body.x + entity.body.halfWidth, entity.body.y + entity.body.halfHeight);
+      explosion.body.velocity.y = entity.body.velocity.y;
+      explosion.alpha = 0.7;
+      explosion.play('explosion', 30, false, true);
     }
 
     function addPointsForKilling(enemy) {
@@ -392,10 +478,11 @@ Game.prototype = {
     }
   },
 
-  // Unused as of right now.
-  // Could be used for powerups or abilities that change enemy attributes
-  // (speed could be halved for a "Slow Time" powerup, for example)
   setEnemyAttributes: function(enemy, options) {
+
+    // Unused as of right now.
+    // Could be used for powerups or abilities that change enemy attributes
+    // (speed could be halved for a "Slow Time" powerup, for example)
     options = options || {};
     game.physics.enable(enemy, Phaser.Physics.ARCADE);
     for (attr in options) {
@@ -434,7 +521,14 @@ Game.prototype = {
   },
 
   restart: function() {
-    droneScouts.callAll('kill');
+    enemies.forEach(function(enemy) {
+      enemy.callAll('kill');
+    });
+
+    enemyWeapons.forEach(function(proj) {
+      proj.callAll('kill');
+    });
+
     enemyReleaseCounter = 0;
     player.revive();
     player.health = 100;
