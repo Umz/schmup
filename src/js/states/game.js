@@ -15,6 +15,7 @@ var droneBombers;
 var enemyReleaseCounter = 0;
 
 var starfield;
+var scrollSpeed = 2;
 
 var explosions;
 var bullets;
@@ -55,32 +56,14 @@ Game.prototype = {
 
     starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
 
-    createPlayerShip();
+    initPlayerShip();
     initControls();
     initEnemies();
     initWeapons();
     initEffects();
+    initMessages();
 
-    playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health + '%', 20);
-    playerShields.render = function() {
-      playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
-    };
-    playerShields.render();
-
-    // Score
-    scoreText = game.add.bitmapText(10, 10, 'spacefont', '', 20);
-    scoreText.render = function() {
-      scoreText.text = 'Score: ' + score;
-    };
-    scoreText.render();
-
-    // Messages
-    gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
-    gameOver.x = gameOver.x - gameOver.textWidth / 2;
-    gameOver.y = gameOver.y - gameOver.textHeight / 3;
-    gameOver.visible = false;
-
-    function createPlayerShip() {
+    function initPlayerShip() {
       player = game.add.sprite(400, 500, 'ship');
       game.physics.arcade.enable(player);
       player.events.onKilled.add(function() {
@@ -174,10 +157,10 @@ Game.prototype = {
       };
 
 
-        enemies.forEach(function(group) {
-          configureEnemies(group);
-          group.init();
-        });
+      enemies.forEach(function(group) {
+        configureEnemies(group);
+        group.init();
+      });
 
       game.launchEnemies(game.randomIntegerFrom(3, 5), droneScouts);
 
@@ -191,16 +174,6 @@ Game.prototype = {
       group.setAll('angle', 180);
       group.setAll('outOfBoundsKill', true);
       group.setAll('checkWorldBounds', true);
-    }
-
-
-    // Unused as of right now.
-    function setEnemyAttributes(enemy, options) {
-      options = options || {};
-      game.physics.enable(enemy, Phaser.Physics.ARCADE);
-      for (attr in options) {
-        enemy[attr] = options[attr];
-      }
     }
 
     function initWeapons() {
@@ -226,12 +199,46 @@ Game.prototype = {
       });
     }
 
+    function initMessages() {
+
+      createShieldMessage();
+      createScoreMessage();
+      createGameOverMessage();
+
+      playerShields.render();
+      scoreText.render();
+
+
+      function createShieldMessage() {
+        playerShields = game.add.bitmapText(game.world.width - 250, 10, 'spacefont', '' + player.health + '%', 20);
+        playerShields.render = function() {
+          playerShields.text = 'Shields: ' + Math.max(player.health, 0) + '%';
+        };
+      }
+
+
+      function createScoreMessage() {
+        scoreText = game.add.bitmapText(10, 10, 'spacefont', '', 20);
+        scoreText.render = function() {
+          scoreText.text = 'Score: ' + score;
+        };
+      }
+
+
+      function createGameOverMessage() {
+        gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
+        gameOver.x = gameOver.x - gameOver.textWidth / 2;
+        gameOver.y = gameOver.y - gameOver.textHeight / 3;
+        gameOver.visible = false;
+      }
+    }
+
   },
 
   update: function() {
     var game = this;
 
-    starfield.tilePosition.y += 2;
+    starfield.tilePosition.y += scrollSpeed;
     enemyReleaseCounter++;
 
     enemies.forEach(function(enemy) {
@@ -397,6 +404,17 @@ Game.prototype = {
         enemy.body.velocity.y = enemy.speed;
         enemy.body.drag.x = enemy.drag;
       }
+    }
+  },
+
+  // Unused as of right now.
+  // Could be used for powerups or abilities that change enemy attributes 
+  // (speed could be halved for a "Slow Time" powerup, for example)
+  setEnemyAttributes: function(enemy, options) {
+    options = options || {};
+    game.physics.enable(enemy, Phaser.Physics.ARCADE);
+    for (attr in options) {
+      enemy[attr] = options[attr];
     }
   },
 
