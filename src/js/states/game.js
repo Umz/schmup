@@ -144,11 +144,12 @@ Game.prototype = {
       };
 
       droneFighters.init = function() {
-        this.createMultiple(10, 'droneFighter');
+        this.createMultiple(15, 'droneFighter');
         this.minWaveTiming = 190;
         this.maxWaveTiming = 500;
         this.minWaveNumber = 2;
         this.maxWaveNumber = 4;
+        this.scoreThreshold = 1000;
         this.forEach(function(enemy) {
           enemy.damageAmount = 25;
           enemy.level = 3;
@@ -238,8 +239,8 @@ Game.prototype = {
       enemyBombs.enableBody = true;
       enemyBombs.physicsBodyType = Phaser.Physics.ARCADE;
       enemyBombs.createMultiple(10, 'enemyBomb');
-      enemyBombs.setAll('scale.x', 1);
-      enemyBombs.setAll('scale.y', 1);
+      enemyBombs.setAll('scale.x', .75);
+      enemyBombs.setAll('scale.y', .75);
       enemyBombs.setAll('anchor.x', 0.5);
       enemyBombs.setAll('anchor.y', 0.5);
       enemyBombs.setAll('outOfBoundsKill', true);
@@ -300,11 +301,15 @@ Game.prototype = {
     var game = this;
 
     starfield.tilePosition.y += scrollSpeed;
-    enemyReleaseCounter++;
+
+    checkReleaseCounter()
 
     enemies.forEach(function(enemy) {
-      checkWaveTimer(enemy);
-      launchNewWaves(enemy);
+      var scoreThreshold = enemy.scoreThreshold || 0;
+      if (score > scoreThreshold) {
+        checkWaveTimer(enemy);
+        launchNewWaves(enemy);
+      }
 
       function checkWaveTimer(enemy) {
         if (!enemy.waveTimer) {
@@ -336,6 +341,10 @@ Game.prototype = {
     checkCollisions();
     checkForGameOver();
     calculatePlayerMovement();
+
+    function checkReleaseCounter() {
+      enemyReleaseCounter > 1000 ? enemyReleaseCounter = 0 : enemyReleaseCounter++;
+    }
 
     function calculatePlayerMovement() {
 
