@@ -17,7 +17,7 @@ Preloader.prototype = {
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
     this.load.setPreloadSprite(this.asset);
     this.load.image('starfield', 'assets/starfield.png');
-    this.load.image('ship', 'assets/player.png');
+    this.load.image('ship', 'assets/gregHead.png');
     this.load.image('plasma', 'assets/bluePlasma.png');
     this.load.image('laser', 'assets/blueLaser.png');
     this.load.image('bullet', 'assets/blueBullet.png');
