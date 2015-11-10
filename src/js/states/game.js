@@ -40,7 +40,7 @@ var size = {
   xLarge: 1.25,
   miniBoss: 1.5,
   boss: 2,
-  greg: 0.25
+  greg: 1
 };
 
 var shipTrail;
