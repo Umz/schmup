@@ -39,7 +39,8 @@ var size = {
   large: 1,
   xLarge: 1.25,
   miniBoss: 1.5,
-  boss: 2
+  boss: 2,
+  greg: 0.55
 };
 
 var shipTrail;
@@ -76,7 +77,7 @@ Game.prototype = {
         .drag.setTo(ship.drag, ship.drag);
       player.anchor.setTo(0.5, 0.5);
       player.health = 100;
-      player.size = size.large;
+      player.size = size.greg;
       game.createShipTrail(player, 'plasma');
     }
 
@@ -289,7 +290,7 @@ Game.prototype = {
       }
 
       function createGameOverMessage() {
-        gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GAME OVER!', 50);
+        gameOver = game.add.bitmapText(game.world.centerX, game.world.centerY, 'spacefont', 'GREG OVER!', 50);
         gameOver.x = gameOver.x - gameOver.textWidth / 2;
         gameOver.y = gameOver.y - gameOver.textHeight / 3;
         gameOver.visible = false;
